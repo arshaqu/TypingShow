@@ -35,18 +35,22 @@ function saveSettings(difficulty: Difficulty, duration: Duration, textMode: Text
   } catch {}
 }
 
-export default function TypingTest() {
-  const saved = loadSettings();
+// Default values used for SSR — must match to avoid hydration mismatch
+const SSR_DEFAULTS = { difficulty: "medium" as Difficulty, duration: 30 as Duration, textMode: "text" as TextMode };
 
-  const [difficulty, setDifficulty] = useState<Difficulty>(saved.difficulty);
-  const [duration, setDuration] = useState<Duration>(saved.duration);
-  const [textMode, setTextMode] = useState<TextMode>(saved.textMode);
+export default function TypingTest() {
+  const [mounted, setMounted] = useState(false);
+
+  // Always initialize with SSR defaults — client settings applied after mount
+  const [difficulty, setDifficulty] = useState<Difficulty>(SSR_DEFAULTS.difficulty);
+  const [duration, setDuration] = useState<Duration>(SSR_DEFAULTS.duration);
+  const [textMode, setTextMode] = useState<TextMode>(SSR_DEFAULTS.textMode);
   const [text, setText] = useState("");
   const [charStates, setCharStates] = useState<CharState[]>([]);
   const [input, setInput] = useState("");
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<Duration>(saved.duration);
+  const [timeLeft, setTimeLeft] = useState<Duration>(SSR_DEFAULTS.duration);
   const [wpm, setWpm] = useState(0);
   const [wpmHistory, setWpmHistory] = useState<number[]>([]);
   const [correctChars, setCorrectChars] = useState(0);
@@ -61,7 +65,6 @@ export default function TypingTest() {
   const textBoxRef = useRef<HTMLDivElement>(null);
   const charRefsMap = useRef<Map<number, HTMLSpanElement>>(new Map());
   const lineStartsRef = useRef<number[]>([]);
-  // Refs to escape stale closures in setInterval
   const correctCharsRef = useRef<number>(0);
   const wpmHistoryRef = useRef<number[]>([]);
   const finalWpmRef = useRef<number>(0);
@@ -89,8 +92,14 @@ export default function TypingTest() {
     setTimeout(() => inputRef.current?.focus(), 50);
   }, []);
 
+  // On mount: read saved settings, apply them, init test
   useEffect(() => {
     const s = loadSettings();
+    setDifficulty(s.difficulty);
+    setDuration(s.duration);
+    setTextMode(s.textMode);
+    setTimeLeft(s.duration);
+    setMounted(true);
     initTest(s.difficulty, s.duration, s.textMode);
   }, []);
 
@@ -125,17 +134,14 @@ export default function TypingTest() {
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           const elapsed = (Date.now() - startTimeRef.current) / 1000;
-          // Always read from ref — never from stale closure
           const w = calculateWPM(correctCharsRef.current, elapsed);
           wpmHistoryRef.current = [...wpmHistoryRef.current, w];
           finalWpmRef.current = w;
-          // Sync state for live display
           setWpmHistory([...wpmHistoryRef.current]);
           setWpm(w);
 
           if (prev <= 1) {
             clearInterval(timerRef.current!);
-            // Use setTimeout to let the final state batch settle before showing results
             setTimeout(() => setFinished(true), 50);
             return 0;
           }
@@ -179,7 +185,6 @@ export default function TypingTest() {
     });
 
     const correct = newStates.filter(c => c.status === "correct").length;
-    // Keep ref in sync every keystroke
     correctCharsRef.current = correct;
     setCorrectChars(correct);
     setTotalTyped(val.length);
@@ -209,7 +214,6 @@ export default function TypingTest() {
   const progress = ((duration - timeLeft) / duration) * 100;
 
   if (finished) {
-    // Read directly from refs to guarantee we have the latest values, not stale state
     const finalHistory = wpmHistoryRef.current;
     const finalWpm = finalWpmRef.current || wpm;
     const finalAccuracy = calculateAccuracy(correctCharsRef.current, totalTyped);
@@ -241,7 +245,7 @@ export default function TypingTest() {
               fontFamily: "var(--font-mono)", fontSize: "0.8rem",
               fontWeight: difficulty === d ? 700 : 400,
               background: difficulty === d ? "var(--green)" : "transparent",
-              color: difficulty === d ? "#0d0d0d" : "var(--muted)", transition: "all 0.15s",
+              color: difficulty === d ? "var(--bg)" : "var(--muted)", transition: "all 0.15s",
             }}>{d}</button>
           ))}
         </div>
@@ -252,7 +256,7 @@ export default function TypingTest() {
               fontFamily: "var(--font-mono)", fontSize: "0.8rem",
               fontWeight: duration === d ? 700 : 400,
               background: duration === d ? "var(--yellow)" : "transparent",
-              color: duration === d ? "#0d0d0d" : "var(--muted)", transition: "all 0.15s",
+              color: duration === d ? "var(--bg)" : "var(--muted)", transition: "all 0.15s",
             }}>{d}s</button>
           ))}
         </div>
@@ -277,17 +281,34 @@ export default function TypingTest() {
       {/* Live Stats Bar */}
       <div style={{ display: "flex", gap: "2rem", marginBottom: "1.5rem", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
-          <div className={wpmPulse ? "wpm-pulse" : ""} style={{ fontSize: "2rem", fontWeight: 700, color: "var(--green)", lineHeight: 1 }}>{wpm}</div>
+          <div className={wpmPulse ? "wpm-pulse" : ""} style={{ fontSize: "2rem", fontWeight: 700, color: "var(--green)", lineHeight: 1 }}>
+            {wpm}
+          </div>
           <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginTop: 2 }}>wpm</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", fontWeight: 700, lineHeight: 1, color: started ? (accuracy >= 90 ? "var(--green)" : accuracy >= 70 ? "var(--yellow)" : "var(--red)") : "var(--muted)" }}>
+          <div style={{
+            fontSize: "2rem", fontWeight: 700, lineHeight: 1,
+            color: started ? (accuracy >= 90 ? "var(--green)" : accuracy >= 70 ? "var(--yellow)" : "var(--red)") : "var(--muted)"
+          }}>
             {started ? `${accuracy}%` : "–"}
           </div>
           <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginTop: 2 }}>accuracy</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", fontWeight: 700, lineHeight: 1, color: timeLeft <= 5 ? "var(--red)" : timeLeft <= 10 ? "var(--yellow)" : "var(--text)" }}>{timeLeft}</div>
+          {/* Render neutral until mounted to avoid hydration mismatch */}
+          <div style={{
+            fontSize: "2rem", fontWeight: 700, lineHeight: 1,
+            color: !mounted
+              ? "var(--text)"
+              : timeLeft <= 5
+                ? "var(--red)"
+                : timeLeft <= 10
+                  ? "var(--yellow)"
+                  : "var(--text)"
+          }}>
+            {mounted ? timeLeft : SSR_DEFAULTS.duration}
+          </div>
           <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginTop: 2 }}>seconds</div>
         </div>
       </div>
@@ -329,8 +350,15 @@ export default function TypingTest() {
         })}
       </div>
 
-      <input ref={inputRef} value={input} onChange={handleInput} onKeyDown={handleKeyDown}
-        autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+      <input
+        ref={inputRef}
+        value={input}
+        onChange={handleInput}
+        onKeyDown={handleKeyDown}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
         style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 1, height: 1 }}
       />
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://typespeed.io"),
@@ -189,6 +190,7 @@ const jsonLdOrganization = {
   ],
 };
 
+
 const jsonLdFAQ = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -241,6 +243,7 @@ const jsonLdFAQ = {
         text: "Consistency measures how steady your typing speed is throughout the test. A high consistency score (90%+) means your WPM stays stable, indicating strong muscle memory and technique.",
       },
     },
+    
   ],
 };
 
@@ -257,6 +260,20 @@ const jsonLdBreadcrumb = {
   ],
 };
 
+// Inline script: runs before React hydrates — prevents flash of wrong theme
+const themeInitScript = `
+(function() {
+  try {
+    var saved = localStorage.getItem('typespeed-theme');
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', saved);
+    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+    // default stays dark (no attribute needed since :root is dark)
+  } catch(e) {}
+})();
+`;
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -267,14 +284,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap"
           rel="stylesheet"
         />
-        {/* JSON-LD Structured Data */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebApp) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFAQ) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <Script id="theme-init" strategy="beforeInteractive">{themeInitScript}</Script>
+        {children}
+      </body>
     </html>
   );
 }

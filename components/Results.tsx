@@ -23,6 +23,11 @@ function getRank(wpm: number): { label: string; color: string; emoji: string } {
   return { label: "Novice", color: "#6c757d", emoji: "🌱" };
 }
 
+/** Read a CSS variable from the document root at runtime */
+function getCSSVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 export default function Results({ wpm, accuracy, consistency, wpmHistory, correctChars, totalTyped, duration, difficulty, onRetry }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,6 +47,11 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Read theme-aware colors at draw time
+    const green = getCSSVar("--green") || "#57e389";
+    const greenDim = getCSSVar("--green-dim") || "#2a6040";
+    const bg = getCSSVar("--bg") || "#0d0d0d";
+
     const data = wpmHistory.length >= 2 ? wpmHistory : wpmHistory.length === 1 ? [0, wpmHistory[0]] : [0, 0];
 
     ctx.clearRect(0, 0, W, H);
@@ -58,9 +68,9 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
     const pts = data.map((v, i) => ({ x: toX(i), y: toY(v) }));
 
     // Grid lines + Y axis labels
-    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.strokeStyle = "rgba(128,128,128,0.15)";
     ctx.lineWidth = 1;
-    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.fillStyle = "rgba(128,128,128,0.5)";
     ctx.font = "11px JetBrains Mono, monospace";
     ctx.textAlign = "right";
     for (let i = 0; i <= 4; i++) {
@@ -75,13 +85,13 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
 
     // X axis label
     ctx.textAlign = "right";
-    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.fillStyle = "rgba(128,128,128,0.5)";
     ctx.fillText("time →", W - padR, H - 6);
 
-    // Gradient fill
+    // Gradient fill — use theme green values
     const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
-    grad.addColorStop(0, "rgba(87,227,137,0.25)");
-    grad.addColorStop(1, "rgba(87,227,137,0)");
+    grad.addColorStop(0, `${green}40`);  // 25% opacity
+    grad.addColorStop(1, `${green}00`);  // 0% opacity
 
     ctx.beginPath();
     ctx.moveTo(pts[0].x, H - padB);
@@ -106,7 +116,7 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
       const cpx = (prev.x + curr.x) / 2;
       ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
     }
-    ctx.strokeStyle = "#57e389";
+    ctx.strokeStyle = green;
     ctx.lineWidth = 2.5;
     ctx.lineJoin = "round";
     ctx.stroke();
@@ -115,9 +125,9 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
     pts.forEach(p => {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#57e389";
+      ctx.fillStyle = green;
       ctx.fill();
-      ctx.strokeStyle = "#0d0d0d";
+      ctx.strokeStyle = bg;
       ctx.lineWidth = 1.5;
       ctx.stroke();
     });
@@ -130,7 +140,6 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
     : wpm;
 
   return (
-    // ↓ padding changed from "0 1.5rem" to "2rem 1.5rem" so content starts from top
     <div className="fade-in" style={{ maxWidth: 1200, margin: "0 auto", padding: "2rem 1.5rem" }}>
 
       {/* Rank Badge */}
@@ -158,6 +167,7 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
             borderRadius: 10,
             padding: "1.2rem 1rem",
             textAlign: "center",
+            transition: "background 0.2s ease",
           }}>
             <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>{stat.label}</div>
             <div style={{ fontSize: "1.6rem", fontWeight: 700, color: stat.color, lineHeight: 1.1 }}>{stat.value}</div>
@@ -175,6 +185,7 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
           borderRadius: 10,
           padding: "1.5rem",
           marginBottom: "2rem",
+          transition: "background 0.2s ease",
         }}
       >
         <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginBottom: "1rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>
@@ -199,7 +210,7 @@ export default function Results({ wpm, accuracy, consistency, wpmHistory, correc
           style={{
             padding: "12px 32px",
             background: "var(--green)",
-            color: "#0d0d0d",
+            color: "var(--bg)",
             border: "none",
             borderRadius: 8,
             fontFamily: "var(--font-mono)",

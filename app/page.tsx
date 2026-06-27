@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import TypingTest from "@/components/TypingTest";
-import Logo from "../public/logo.png"
+import Logo from "../public/logo.png";
 import Image from "next/image";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "TypeSpeed – Free Online Typing Speed Test | Measure Your WPM",
@@ -19,25 +20,35 @@ export default function Home() {
         alignItems: "center",
         justifyContent: "space-between",
         marginBottom: "2.5rem",
+        background: "var(--bg)",
+        transition: "background 0.2s ease, border-color 0.2s ease",
       }}>
+        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-  <Image
-    src={Logo}
-    alt="Logos"
-    style={{
-      width: "42px",height: "42px",objectFit: "contain",
-    }}
-  />
-  <span
-    style={{fontWeight: 700,fontSize: "1.1rem",color: "var(--yellow)",letterSpacing: "-0.01em",}}  >
+          <Image
+            src={Logo}
+            alt="TypeSpeed Logo"
+            style={{ width: "42px", height: "42px", objectFit: "contain" }}
+          />
+          <span style={{
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            color: "var(--yellow)",
+            letterSpacing: "-0.01em",
+          }}>
             TypeSpeed
           </span>
         </div>
-        <nav style={{ display: "flex", gap: "1.5rem" }}>
-          <a href="/" style={{ color: "var(--muted)", fontSize: "0.85rem", textDecoration: "none" }}>Home</a>
-          <a href="#how-it-works" style={{ color: "var(--muted)", fontSize: "0.85rem", textDecoration: "none" }}>How It Works</a>
-          <a href="#faq" style={{ color: "var(--muted)", fontSize: "0.85rem", textDecoration: "none" }}>FAQ</a>
-        </nav>
+
+        {/* Nav + Toggle */}
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+          <nav style={{ display: "flex", gap: "1.5rem" }}>
+            <a href="/" style={{ color: "var(--muted)", fontSize: "0.85rem", textDecoration: "none" }}>Home</a>
+            <a href="#how-it-works" style={{ color: "var(--muted)", fontSize: "0.85rem", textDecoration: "none" }}>How It Works</a>
+            <a href="#faq" style={{ color: "var(--muted)", fontSize: "0.85rem", textDecoration: "none" }}>FAQ</a>
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
 
       <main>
@@ -80,6 +91,7 @@ export default function Home() {
                 borderRadius: 8,
                 padding: "1rem",
                 textAlign: "center",
+                transition: "background 0.2s ease",
               }}>
                 <div style={{ fontSize: "0.85rem", fontWeight: 700, color: tier.color }}>{tier.range}</div>
                 <div style={{ fontSize: "0.8rem", color: "var(--text)", margin: "0.25rem 0" }}>{tier.label}</div>
@@ -89,7 +101,7 @@ export default function Home() {
           </div>
         </section>
 
-           {/* How It Works */}
+        {/* How It Works */}
         <section id="how-it-works" style={{ maxWidth: 1100, margin: "5rem auto 0", padding: "0 1.5rem" }}>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "2rem", textAlign: "center" }}>
             How the typing test works
@@ -106,6 +118,7 @@ export default function Home() {
                 border: "1px solid var(--border)",
                 borderRadius: 10,
                 padding: "1.5rem",
+                transition: "background 0.2s ease",
               }}>
                 <div style={{ fontSize: "0.7rem", color: "var(--green)", fontWeight: 700, marginBottom: "0.5rem", letterSpacing: "0.1em" }}>{item.step}</div>
                 <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>{item.title}</h3>
@@ -116,7 +129,7 @@ export default function Home() {
         </section>
 
 
-        {/* FAQ — great for SEO */}
+        {/* FAQ */}
         <section id="faq" style={{ maxWidth: 840, margin: "4rem auto 0", padding: "0 1.5rem" }}>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "2rem", textAlign: "center" }}>
             Frequently asked questions
@@ -149,6 +162,7 @@ export default function Home() {
               borderRadius: 8,
               marginBottom: "0.75rem",
               overflow: "hidden",
+              transition: "background 0.2s ease",
             }}>
               <summary style={{
                 padding: "1rem 1.25rem",
@@ -171,6 +185,34 @@ export default function Home() {
           ))}
         </section>
 
+
+
+      <section style={{ maxWidth: 600, margin: "4rem auto 0", padding: "0 1.5rem", textAlign: "center" }}>
+        <div style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: 12,
+          padding: "2rem 2.5rem",
+        }}>
+          <div style={{ fontSize: "1.8rem", marginBottom: "0.75rem" }}>🐛</div>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.5rem" }}>
+            Found a bug or have feedback?
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "1.25rem" }}>
+            We are always improving TypeSpeed. If something isn t working
+            right or you have a suggestion, drop us a message — we read every one.
+          </p>
+          <a
+            href="mailto:arshaqdev@gmail.com"
+            className="feedback-link"
+          >
+            arshaqdev@gmail.com ↗
+          </a>
+        </div>
+      </section>
+       
+
+
         {/* SEO text block */}
         <section style={{ maxWidth: 900, margin: "4rem auto 0", padding: "0 1.5rem" }}>
           <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "1rem" }}>
@@ -192,6 +234,7 @@ export default function Home() {
         textAlign: "center",
         color: "var(--muted)",
         fontSize: "0.8rem",
+        transition: "border-color 0.2s ease",
       }}>
         <div style={{ marginBottom: "0.75rem" }}>
           <a href="/" style={{ color: "var(--muted)", textDecoration: "none", marginRight: "1.5rem" }}>Home</a>

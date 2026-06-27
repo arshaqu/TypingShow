@@ -143,7 +143,7 @@ export default function TypingTest() {
           if (prev <= 1) {
             clearInterval(timerRef.current!);
             setTimeout(() => setFinished(true), 50);
-            return 0;
+            return 0 as Duration;
           }
           return (prev - 1) as Duration;
         });

@@ -7,7 +7,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 export const metadata: Metadata = {
   title: "TypeSpeed – Free Online Typing Speed Test | Measure Your WPM",
   description:
-    "Take the free online typing speed test and measure your WPM (words per minute), accuracy, and consistency. Choose from Easy, Medium, or Hard difficulty. No signup required.",
+    "Take the free online typing speed test and measure your WPM (words per minute), accuracy, and consistency. Choose Easy, Medium, Hard, or Zen mode, with optional numbers and punctuation. No signup required.",
 };
 
 export default function Home() {
@@ -24,7 +24,7 @@ export default function Home() {
         transition: "background 0.2s ease, border-color 0.2s ease",
       }}>
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <a href="#" style={{ display: "flex", alignItems: "center", gap: "0.75rem", textDecoration: "none" }}>
           <Image
             src={Logo}
             alt="TypeSpeed Logo"
@@ -38,7 +38,7 @@ export default function Home() {
           }}>
             TypeSpeed
           </span>
-        </div>
+        </a>
 
         {/* Nav + Toggle */}
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
@@ -59,10 +59,10 @@ export default function Home() {
           </h1>
           <p style={{ color: "var(--muted)", fontSize: "1rem", maxWidth: 520, margin: "0 auto 0.5rem" }}>
             Measure your <strong style={{ color: "var(--text)" }}>WPM</strong>, accuracy, and consistency.
-            Choose a difficulty, set your timer, and start typing.
+            Choose a difficulty, mode, and timer, and start typing.
           </p>
           <p style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
-            No signup required — 100% free
+            No signup required — 100% free — your history is saved on this device
           </p>
         </section>
 
@@ -108,10 +108,10 @@ export default function Home() {
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem" }}>
             {[
-              { step: "01", title: "Choose Settings", desc: "Select difficulty (Easy, Medium, Hard) and test duration (15s, 30s, 60s, 120s) to customize your test." },
-              { step: "02", title: "Start Typing", desc: "Click the text area and begin typing. The timer starts automatically on your first keystroke." },
-              { step: "03", title: "See Results", desc: "Your WPM, accuracy, consistency, and error count are calculated when the timer reaches zero." },
-              { step: "04", title: "Improve", desc: "Practice daily. Most people improve 5–10 WPM per week with regular 10-minute practice sessions." },
+              { step: "01", title: "Choose Settings", desc: "Select difficulty (Easy, Medium, Hard), a mode (15s/30s/60s/120s or Zen), and optionally toggle numbers or punctuation." },
+              { step: "02", title: "Start Typing", desc: "Click the text area and begin typing. The timer starts automatically on your first keystroke — or just type freely in Zen mode." },
+              { step: "03", title: "See Results", desc: "Your WPM, accuracy, consistency, and error count are calculated when the test ends, and saved to your history." },
+              { step: "04", title: "Improve", desc: "Practice daily and check your history to track progress. Most people improve 5–10 WPM per week with regular 10-minute sessions." },
             ].map(item => (
               <div key={item.step} style={{
                 background: "var(--surface)",
@@ -127,7 +127,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
 
         {/* FAQ */}
         <section id="faq" style={{ maxWidth: 840, margin: "4rem auto 0", padding: "0 1.5rem" }}>
@@ -146,6 +145,18 @@ export default function Home() {
             {
               q: "What is consistency in typing?",
               a: "Consistency measures how steady your typing rhythm is over time. A high consistency score (90%+) means your WPM stays stable throughout the test, which is a sign of solid muscle memory and technique.",
+            },
+            {
+              q: "What is Zen mode?",
+              a: "Zen mode removes the timer and target text entirely — you just type freely, like a blank notepad, while your WPM is tracked in real time. Press Escape when you're done to see your results.",
+            },
+            {
+              q: "What does the punctuation toggle do?",
+              a: "Turning on punctuation adds realistic sentence structure to the test text — capital letters, commas, periods, and occasional quotation marks — so you practice typing the way you actually write.",
+            },
+            {
+              q: "Is my history saved anywhere?",
+              a: "Your test history is stored locally in your browser, so it stays private to your device. No account or sign-up is required, and you can clear it anytime from the History panel.",
             },
             {
               q: "How can I improve my typing speed?",
@@ -185,33 +196,29 @@ export default function Home() {
           ))}
         </section>
 
-
-
-      <section style={{ maxWidth: 600, margin: "4rem auto 0", padding: "0 1.5rem", textAlign: "center" }}>
-        <div style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: 12,
-          padding: "2rem 2.5rem",
-        }}>
-          <div style={{ fontSize: "1.8rem", marginBottom: "0.75rem" }}>🐛</div>
-          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-            Found a bug or have feedback?
-          </h2>
-          <p style={{ color: "var(--muted)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "1.25rem" }}>
-            We are always improving TypeSpeed. If something isn t working
-            right or you have a suggestion, drop us a message — we read every one.
-          </p>
-          <a
-            href="mailto:arshaqdev@gmail.com"
-            className="feedback-link"
-          >
-            arshaqdev@gmail.com ↗
-          </a>
-        </div>
-      </section>
-       
-
+        <section style={{ maxWidth: 600, margin: "4rem auto 0", padding: "0 1.5rem", textAlign: "center" }}>
+          <div style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: 12,
+            padding: "2rem 2.5rem",
+          }}>
+            <div style={{ fontSize: "1.8rem", marginBottom: "0.75rem" }}>🐛</div>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.5rem" }}>
+              Found a bug or have feedback?
+            </h2>
+            <p style={{ color: "var(--muted)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "1.25rem" }}>
+              We are always improving TypeSpeed. If something isn t working
+              right or you have a suggestion, drop us a message — we read every one.
+            </p>
+            
+              href="mailto:arshaqdev@gmail.com"
+              className="feedback-link"
+            <a>
+              arshaqdev@gmail.com ↗
+            </a>
+          </div>
+        </section>
 
         {/* SEO text block */}
         <section style={{ maxWidth: 900, margin: "4rem auto 0", padding: "0 1.5rem" }}>
@@ -222,7 +229,7 @@ export default function Home() {
             TypeSpeed is a free online typing speed test designed to help you measure and improve your typing speed (WPM), accuracy, and consistency. Whether you&apos;re a student, programmer, writer, or office professional, knowing your typing speed is the first step to improving productivity.
           </p>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", lineHeight: 1.8 }}>
-            Unlike many other typing tests, TypeSpeed offers multiple difficulty levels — from simple common words to complex programming vocabulary — and flexible test durations from 15 seconds to 2 minutes. The real-time WPM counter and color-coded feedback help you identify problem areas as you type.
+            Unlike many other typing tests, TypeSpeed offers multiple difficulty levels — from simple common words to complex programming vocabulary — flexible test durations from 15 seconds to 2 minutes, a relaxed Zen mode with no timer, and optional numbers and punctuation. Every result is saved to your local history so you can track your progress over time.
           </p>
         </section>
       </main>

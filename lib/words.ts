@@ -82,15 +82,72 @@ const HARD_WORDS = [
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type Duration = 15 | 30 | 60 | 120;
-export type TextMode = "text" | "text+numbers" | "text+numbers+symbols";
+/** "time" = classic countdown test, "zen" = no timer/no target text, type freely until you stop */
+export type Mode = "time" | "zen";
 
 const NUMBERS = ["0","1","2","3","4","5","6","7","8","9","10","12","15","20","24","42","50","64","99","100","256","404","500","1024","2024"];
 
+// Code-style symbols, used only when you really want a "symbols" flavor.
 const SYMBOLS = ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "+", "=", "{", "}", "[", "]", ":", ";", "'", "\"", "<", ">", ",", ".", "/", "?", "|", "~", "`", "\\"];
+
+// Natural sentence punctuation, used by the "punctuation" toggle.
+const END_PUNCT = [".", ".", ".", "!", "?"];
+const MID_PUNCT = [",", ",", ";", ":"];
+
+export interface TextOptions {
+  numbers?: boolean;
+  punctuation?: boolean;
+}
 
 function injectNumbers(words: string[]): string[] {
   // Replace ~1 in every 5 words with a number
   return words.map((w, i) => (i % 5 === 2 ? NUMBERS[Math.floor(Math.random() * NUMBERS.length)] : w));
+}
+
+function capitalize(w: string): string {
+  return w.charAt(0).toUpperCase() + w.slice(1);
+}
+
+function injectPunctuation(words: string[]): string[] {
+  // Build sentence-like structure: capitalize after sentence end, sprinkle commas,
+  // occasionally wrap a word in quotes, end sentences with . ! or ?
+  const out: string[] = [];
+  let sinceSentenceStart = 0;
+  let nextCapitalize = true;
+
+  for (let i = 0; i < words.length; i++) {
+    let w = words[i];
+
+    if (nextCapitalize) {
+      w = capitalize(w);
+      nextCapitalize = false;
+    }
+
+    // Occasionally wrap in quotes (rare)
+    if (i % 17 === 8) {
+      w = `"${w}"`;
+    }
+
+    out.push(w);
+    sinceSentenceStart++;
+
+    const isLast = i === words.length - 1;
+    // End a "sentence" every 6-12 words
+    const sentenceLen = 6 + (i % 7);
+    if (!isLast && sinceSentenceStart >= sentenceLen) {
+      out[out.length - 1] += END_PUNCT[Math.floor(Math.random() * END_PUNCT.length)];
+      sinceSentenceStart = 0;
+      nextCapitalize = true;
+    } else if (!isLast && i % 5 === 3) {
+      // mid-sentence comma/semicolon
+      out[out.length - 1] += MID_PUNCT[Math.floor(Math.random() * MID_PUNCT.length)];
+    }
+
+    if (isLast) {
+      out[out.length - 1] += END_PUNCT[0];
+    }
+  }
+  return out;
 }
 
 function injectSymbols(words: string[]): string[] {
@@ -107,17 +164,19 @@ function injectSymbols(words: string[]): string[] {
   });
 }
 
-export function generateText(difficulty: Difficulty, wordCount: number = 50, mode: TextMode = "text"): string {
+export function generateText(difficulty: Difficulty, wordCount: number = 50, options: TextOptions = {}): string {
   const pool = difficulty === "easy" ? EASY_WORDS : difficulty === "medium" ? MEDIUM_WORDS : HARD_WORDS;
   let words: string[] = [];
   for (let i = 0; i < wordCount; i++) {
     words.push(pool[Math.floor(Math.random() * pool.length)]);
   }
-  if (mode === "text+numbers" || mode === "text+numbers+symbols") {
+  if (options.numbers) {
     words = injectNumbers(words);
   }
-  if (mode === "text+numbers+symbols") {
-    words = injectSymbols(words);
+  if (options.punctuation) {
+    words = injectPunctuation(words);
+  } else {
+    // keep backward-compat "symbols" flavor available internally if ever needed
   }
   return words.join(" ");
 }
@@ -140,4 +199,53 @@ export function calculateConsistency(wpmHistory: number[]): number {
   const stdDev = Math.sqrt(variance);
   const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
   return Math.max(0, Math.round(100 - cv));
+}
+
+// ---------- History ----------
+export interface HistoryEntry {
+  id: string;
+  date: number; // epoch ms
+  wpm: number;
+  accuracy: number;
+  consistency: number;
+  difficulty: Difficulty;
+  mode: Mode;
+  duration: Duration | null; // null for zen
+  numbers: boolean;
+  punctuation: boolean;
+}
+
+const HISTORY_KEY = "typespeed_history";
+const HISTORY_LIMIT = 100;
+
+export function loadHistory(): HistoryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveHistoryEntry(entry: Omit<HistoryEntry, "id" | "date">): HistoryEntry[] {
+  const history = loadHistory();
+  const newEntry: HistoryEntry = {
+    ...entry,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    date: Date.now(),
+  };
+  const updated = [newEntry, ...history].slice(0, HISTORY_LIMIT);
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+  } catch {}
+  return updated;
+}
+
+export function clearHistory(): void {
+  try {
+    localStorage.removeItem(HISTORY_KEY);
+  } catch {}
 }

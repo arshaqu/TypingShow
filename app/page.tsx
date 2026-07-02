@@ -211,10 +211,10 @@ export default function Home() {
               We are always improving TypeSpeed. If something isn t working
               right or you have a suggestion, drop us a message — we read every one.
             </p>
-            
+            <a
               href="mailto:arshaqdev@gmail.com"
               className="feedback-link"
-            <a>
+            >
               arshaqdev@gmail.com ↗
             </a>
           </div>
